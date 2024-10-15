@@ -3,9 +3,9 @@ package com.microservice.question_microservice.service.impl;
 import com.microservice.question_microservice.models.QuestionWrapper;
 import com.microservice.question_microservice.models.Questions;
 import com.microservice.question_microservice.models.Response;
-import com.microservice.question_microservice.nullCheck.checkNonNullProperties;
 import com.microservice.question_microservice.repository.QuestionRepository;
 import com.microservice.question_microservice.service.QuestionService;
+import com.microservice.question_microservice.service.QuestionServiceHelper;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,27 +53,29 @@ public class QuestionServiceImpl implements QuestionService {
             return new ResponseEntity<>(new ArrayList<>(), HttpStatus.NOT_FOUND);
         }
     }
-
-    @Override
-    public ResponseEntity<Questions> getQuestionByID(String questionID) {
-        try {
-            Optional<Questions> questionOpt = questionRepository.findById(Integer.valueOf(questionID));
-            return questionOpt.map(questions -> new ResponseEntity<>(questions, HttpStatus.OK))
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        } catch (NumberFormatException e) {
-            logger.error("Invalid question ID format: " + questionID, e);
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            logger.error("An unexpected error occurred while loading question with ID: " + questionID, e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
+//    @Override
+//    public ResponseEntity<Questions> getQuestionByID(String questionID) {
+//        try {
+//            Optional<Questions> questionOpt = questionRepository.findById(Integer.valueOf(questionID));
+//            return questionOpt.map(questions -> new ResponseEntity<>(questions, HttpStatus.OK))
+//                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+//        } catch (NumberFormatException e) {
+//            logger.error("Invalid question ID format: " + questionID, e);
+//            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+//        } catch (Exception e) {
+//            logger.error("An unexpected error occurred while loading question with ID: " + questionID, e);
+//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
     @Override
     public ResponseEntity<String> addQuestion(Questions question) {
         try {
-            questionRepository.save(question);
-            return new ResponseEntity<>("Created Successfully!",HttpStatus.CREATED);
+            //New question cannot be added unless all the columns are filled
+            if(QuestionServiceHelper.areFieldsValid(question)) {
+                questionRepository.save(question);
+                return new ResponseEntity<>("Created Successfully!",HttpStatus.CREATED);
+            }
+            return new ResponseEntity<>("Not All columns are filled", HttpStatus.BAD_REQUEST);
         }catch (HttpClientErrorException.BadRequest bd){
             return new ResponseEntity<>("Wrong input format!", HttpStatus.BAD_REQUEST);
         }
@@ -83,14 +85,14 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public ResponseEntity<String> updateQuestion(String questionId, Questions newQuestion) {
+    public ResponseEntity<String> updateQuestion(Integer questionId, Questions newQuestion) {
         try {
-            Optional<Questions> oldQuestion = questionRepository.findById(Integer.valueOf(questionId));
+            Optional<Questions> oldQuestion = questionRepository.findById(questionId);
             if (oldQuestion.isPresent()) {
                 Questions questionToBeUpdated = oldQuestion.get();
-                //******************
-                //If the user only enters a value for single column, it will update only the selected column and leaves the rest as it was.
-                checkNonNullProperties.copyProperties(newQuestion, questionToBeUpdated);
+                // If the user only enters a value for single column,
+                // it will update only the selected column and leaves the rest as it was.
+                QuestionServiceHelper.copyProperties(newQuestion, questionToBeUpdated);
                 questionRepository.save(questionToBeUpdated);
                 return new ResponseEntity<>("Question " + questionId + " updated successfully!", HttpStatus.OK);
             } else {
@@ -106,10 +108,10 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public ResponseEntity<String> deleteQuestion(String questionID) {
+    public ResponseEntity<String> deleteQuestion(Integer questionID) {
         try {
-            if(questionRepository.findById(Integer.valueOf(questionID)).isPresent()) {
-                questionRepository.deleteById(Integer.valueOf(questionID));
+            if(questionRepository.findById(questionID).isPresent()) {
+                questionRepository.deleteById(questionID);
                 return new ResponseEntity<>(questionID + " Deleted Successfully", HttpStatus.OK);
             }else {
                 return new ResponseEntity<>(questionID + " ID is not present!", HttpStatus.NOT_FOUND);
@@ -124,8 +126,8 @@ public class QuestionServiceImpl implements QuestionService {
     public ResponseEntity<List<Integer>> getQuestionsForQuiz(String category, Integer numOfQuestions) {
         List<Questions> byCategory = questionRepository.findQuestionsByCategory(category);
         if (!byCategory.isEmpty() && byCategory.size() >= numOfQuestions) {
-            List<Integer> questionsByCategoryLimited = questionRepository.findQuestionsByCategoryLimited(category, numOfQuestions);
-            return new ResponseEntity<>(questionsByCategoryLimited, HttpStatus.OK);
+            List<Integer> questionIdsForQuiz = questionRepository.findQuestionsByCategoryLimited(category, numOfQuestions);
+            return new ResponseEntity<>(questionIdsForQuiz, HttpStatus.OK);
         }
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.BAD_REQUEST);
     }

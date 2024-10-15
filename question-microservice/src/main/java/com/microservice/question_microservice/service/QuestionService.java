@@ -12,13 +12,13 @@ public interface QuestionService {
 
     ResponseEntity<List<Questions>> getQuestionsBasedOnCategory(String categoryType);
 
-    ResponseEntity<Questions> getQuestionByID(String questionID);
+    //ResponseEntity<Questions> getQuestionByID(String questionID);
 
     ResponseEntity<String> addQuestion(Questions question);
 
-    ResponseEntity<String> updateQuestion(String questionId, Questions newQuestion);
+    ResponseEntity<String> updateQuestion(Integer questionId, Questions newQuestion);
 
-    ResponseEntity<String> deleteQuestion(String questionID);
+    ResponseEntity<String> deleteQuestion(Integer questionID);
 
     ResponseEntity<List<Integer>> getQuestionsForQuiz(String category, Integer numOfQuestions);
 

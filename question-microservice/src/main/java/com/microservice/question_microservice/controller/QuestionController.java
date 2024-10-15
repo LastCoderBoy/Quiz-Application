@@ -33,12 +33,12 @@ public class QuestionController {
     }
 
     @PutMapping("update/{questionId}")
-    public ResponseEntity<String> updateQuestion(@PathVariable String questionId, @RequestBody Questions newQuestion){
+    public ResponseEntity<String> updateQuestion(@PathVariable Integer questionId, @RequestBody Questions newQuestion){
         return questionService.updateQuestion(questionId, newQuestion);
     }
 
     @DeleteMapping("delete/{questionID}")
-    public ResponseEntity<String> deleteQuestion(@PathVariable String questionID){
+    public ResponseEntity<String> deleteQuestion(@PathVariable Integer questionID){
         return questionService.deleteQuestion(questionID);
     }
 
@@ -48,11 +48,13 @@ public class QuestionController {
         return questionService.getQuestionsForQuiz(category, numOfQuestions);
     }
 
+    //getQuestions
     @PostMapping("getQuestions")
     public ResponseEntity<List<QuestionWrapper>> getQuestionsFromID(@RequestBody List<Integer> questionIDs){
         return questionService.getQuestionsFromID(questionIDs);
     }
 
+    //getScore
     @PostMapping("getScore")
     public ResponseEntity<Integer> getQuestionScore(@RequestBody List<Response> responses){
         return questionService.getQuestionScore(responses);
