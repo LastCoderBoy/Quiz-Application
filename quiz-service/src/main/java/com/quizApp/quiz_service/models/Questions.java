@@ -1,10 +1,16 @@
 package com.quizApp.quiz_service.models;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 @Data
 @Entity
+@Builder
+@RequiredArgsConstructor
 @Table(name = "questions")
+@AllArgsConstructor
 public class Questions {
 
     @Id

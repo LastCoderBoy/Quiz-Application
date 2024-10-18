@@ -41,8 +41,9 @@ public class QuizServiceImpl implements QuizService {
                 return new ResponseEntity<>("Success!", HttpStatus.CREATED);
             }
             else {
+                logger.warn("No questions found for category: " + category + " or could not generate " + numOfQuestions + " quiz(es).");
                 return new ResponseEntity<>("No questions found for the specified category.\nOr Couldn't able to generate " +
-                        numOfQuestions + " quiz for this category", HttpStatus.BAD_REQUEST);
+                        numOfQuestions + " quiz(es) for this category", HttpStatus.BAD_REQUEST);
             }
         } catch (DataAccessException dae) {
             // Handle specific database exceptions
@@ -69,13 +70,19 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public ResponseEntity<Integer> calculateResult(int id, List<Response> userResponses) {
-        Optional<Quiz> quiz = quizRepository.findById(id);
-        if(quiz.isPresent()) {
-            ResponseEntity<Integer> quizScore = fromQuestionService.getQuestionScore(userResponses);
-            return quizScore;
+        Optional<Quiz> quizToBeChecked = quizRepository.findById(id);
+        if(quizToBeChecked.isPresent()) {
+            int totalQuizzes = quizToBeChecked.get().getQuestionIds().size();
+            int totalUserResponse = userResponses.size();
+            if(totalQuizzes >= totalUserResponse) {
+                ResponseEntity<Integer> score = fromQuestionService.getQuestionScore(userResponses);
+                return score;
+            }else {
+                logger.warn("User response is out of exception");
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
         }
-        else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        logger.warn("Quiz on the given id: " + id + " is not found!");
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 }
