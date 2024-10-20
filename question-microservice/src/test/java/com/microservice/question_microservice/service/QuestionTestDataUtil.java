@@ -1,4 +1,4 @@
-package com.microservice.question_microservice;
+package com.microservice.question_microservice.service;
 
 import com.microservice.question_microservice.models.Questions;
 

@@ -1,6 +1,6 @@
 package com.microservice.question_microservice.service.impl;
 
-import com.microservice.question_microservice.QuestionTestDataUtil;
+import com.microservice.question_microservice.service.QuestionTestDataUtil;
 import com.microservice.question_microservice.models.QuestionWrapper;
 import com.microservice.question_microservice.models.Questions;
 import com.microservice.question_microservice.models.Response;
@@ -269,14 +269,15 @@ class QuestionServiceImplTest {
         responseList.add(response1);
         responseList.add(response2);
 
-        when(questionRepository.findQuestionsById(response1.getId())).thenReturn(question1);
-        when(questionRepository.findQuestionsById(response2.getId())).thenReturn(question2);
+        when(questionRepository.findById(response1.getId())).thenReturn(Optional.of(question1));
+        when(questionRepository.findById(response2.getId())).thenReturn(Optional.of(question2));
 
         //Act
         ResponseEntity<Integer> questionScoreList = underTest.getQuestionScore(responseList);
+
         //questionScoreList = 2
-        verify(questionRepository).findQuestionsById(response1.getId());
-        verify(questionRepository).findQuestionsById(response2.getId());
+        verify(questionRepository).findById(response1.getId());
+        verify(questionRepository).findById(response2.getId());
 
         assertEquals(2, questionScoreList.getBody().intValue());
 

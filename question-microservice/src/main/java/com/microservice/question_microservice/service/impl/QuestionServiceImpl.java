@@ -142,7 +142,7 @@ public class QuestionServiceImpl implements QuestionService {
     public ResponseEntity<Integer> getQuestionScore(List<Response> responses) {
         int rightAnswers = 0;
         for (Response userResponse : responses) {
-            Questions questionsById = questionRepository.findQuestionsById(userResponse.getId());
+            Questions questionsById = questionRepository.findById(userResponse.getId()).get();
                 if (userResponse.getUserResponse().equals(questionsById.getRightAnswer())) {
                     rightAnswers++;
                 }
